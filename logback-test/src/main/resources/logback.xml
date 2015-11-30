@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- For assistance related to logback-translator or configuration  -->
+<!-- files in general, please contact the logback user mailing list -->
+<!-- at http://www.qos.ch/mailman/listinfo/logback-user             -->
+<!--                                                                -->
+<!-- For professional support please see                            -->
+<!--    http://www.qos.ch/shop/products/professionalSupport         -->
+<!--                                                                -->
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <timestamp key="byDay" datePattern="yyyyMMdd"/>
+    <appender name="rolling" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
+        <Append>true</Append>
+        <File>logs/rolling.log</File>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] | %t | %p | %X{name} | [%X{user}] | [%X{remoteAddress}] | [%c] | %m%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <maxIndex>100</maxIndex>
+            <FileNamePattern>logs/rolling.log.%i</FileNamePattern>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>30MB</MaxFileSize>
+        </triggeringPolicy>
+    </appender>
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss}] | %p | [%c] | %m%n</pattern>
+        </encoder>
+    </appender>
+    <!--modify by zhangym =============================start============================ -->
+    <appender name="file" class="ch.qos.logback.core.FileAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator> <!-- 默认为 ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
+                <expression>return message.contains("system error");</expression>
+            </evaluator>
+            <OnMatch>ACCEPT</OnMatch>
+            <OnMismatch>DENY</OnMismatch>
+        </filter>
+        <file>./log_${byDay}.log</file>
+        <encoder charset="UTF-8">
+            <pattern>%n[%level] - %date - %logger#%line%n ${tip} %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--logger 模块-->
+    <logger name="org.apache.avro.ipc" level="INFO">
+        <appender-ref ref="file"/>
+    </logger>
+    <!-- =========================================end========================================== -->
+    <!-- TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF -->
+    <root level="TRACE">
+        <appender-ref ref="rolling"/>
+        <appender-ref ref="stdout"/>
+    </root>
+</configuration>
